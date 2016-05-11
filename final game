@@ -1,0 +1,457 @@
+import ddf.minim.spi.*;
+import ddf.minim.signals.*;
+import ddf.minim.*;
+import ddf.minim.analysis.*;
+import ddf.minim.ugens.*;
+import ddf.minim.effects.*;
+Minim minim;
+AudioPlayer sou;
+
+
+import fontastic.*;
+PFont font;
+
+void setup()
+{
+  size(800, 800);
+  rectMode(CENTER);
+  textSize (30);
+  font = loadFont("mfont.vlw");
+  textFont(font);
+  minim = new Minim(this);
+  sou = minim.loadFile("Show Your Moves.mp3");
+  sou.loop();
+}
+
+int paused = 0;
+float cirx = 400, ciry = 400, cirw = 30, cirh = 30;
+float powx = random(100, 300), powy = -50, poww = 30, powh = 30;
+float xspeed = 3, yspeed = 4;
+float pyspeed = 5;
+float powxx = random(300, 500), powyy = -200, powww = 30, powhh = 30;
+float pyyspeed = 5;
+float plx = 350, ply = 750, plw = 150, plh = 30;
+float playerspeed;
+int score = 0;  
+int lives = 3;
+int block = 0;
+
+//top row
+float blx = 100, bly = 100, blw = 150, blh = 100;
+float blx1 = 300, bly1 = 100, blw1 = 150, blh1 = 100;
+float blx2 = 500, bly2 = 100, blw2 = 150, blh2 = 100;
+float blx3 = 700, bly3 = 100, blw3 = 150, blh3 = 100;
+
+//bottom row
+float blx4 = 100, bly4 = 250, blw4 = 150, blh4 = 100;
+float blx5 = 300, bly5 = 250, blw5 = 150, blh5 = 100;
+float blx6 = 500, bly6 = 250, blw6 = 150, blh6 = 100;
+float blx7 = 700, bly7 = 250, blw7 = 150, blh7 = 100;
+
+void powerup()
+{  
+  fill(34, 210, 127);
+  rect( powx, powy, poww, powh); // ball
+
+  powy = powy + pyspeed;
+
+  if ( powy > 850) // reset powerup
+  {
+    powy = -50;
+    powx = random(50, 750);
+    score -= 50;
+  }
+  
+   if (powy + powh/2 > ply - plh/2 && powx + poww/2 > plx - plw/2 && powx - poww/2 < plx + plw/2) // bounce off paddle
+ {
+   score += 200;
+   powy = -50;
+   powx = random(50, 750);
+ }
+}
+ 
+ void powerdown()
+{  
+  fill(255, 88, 89);
+  rect( powxx, powyy, powww, powhh); // ball
+
+  powyy = powyy + pyyspeed;
+
+  if ( powyy > 850) // reset powerup
+  {
+    powyy = -50;
+    powxx = random(50, 750);
+    score +=50;
+  }
+  
+   if (powyy + powhh/2 > ply - plh/2 && powxx + powww/2 > plx - plw/2 && powxx - powww/2 < plx + plw/2) // bounce off paddle
+ {
+   score += - 200;
+   powyy = - 50;
+   powxx = random(50, 750);
+ }
+  
+}
+
+void mouseClicked()
+{
+  paused += 1;
+
+}
+
+void gamestart()
+{
+  background (118, 49, 232);
+  int textx = 130, texty = 210;
+  if (paused == 0)
+  {
+    textSize (60);
+    text ( "  BREAKOUT ", textx*1.39, texty);
+    textSize (30);
+    text ( "Collect green squares, avoid red.", textx, texty*1.5);
+    text ( "Press 'A' to move the paddle right.", textx, texty*2);
+    text ( "Press 'D' to move the paddle left.", textx, texty*2.5);
+    text ( "Click to start the game!", textx, texty*3);
+    noFill();
+    stroke(255);
+    strokeWeight(10);
+    int rx = 400, ry = 650;
+    rect(rx, rx, ry, ry);
+  }
+}
+
+void score()
+{
+  int textx = 565, texty = 40;
+  fill(255);
+
+  text("Score = ", textx, texty); //score
+  text(score, textx + 140, texty);
+  
+  int textxx = 60, textyy = 50;
+  text("Lives = ", textxx, texty); //lives
+  text(lives, textxx + 140, texty);
+  
+}
+
+void ball()
+{  
+  fill(255);
+  ellipse( cirx, ciry, cirw, cirh); // ball
+
+  cirx = cirx + xspeed; // move ball
+  ciry = ciry + yspeed;
+
+  if ( cirx > 800) // bounce off walls
+  {
+    xspeed = - xspeed;
+  }
+
+  else if (cirx < 0) 
+  {
+    xspeed = -xspeed;
+  }
+
+  if ( ciry > 800) // the game is over
+  {
+    cirx = 400;
+    ciry = 400;
+    lives = lives -1;
+  }
+
+  if ( ciry < 0)
+  {
+    yspeed = -yspeed;
+  }
+}
+
+void block()
+{
+  fill(255);
+  rect(blx, bly, blw, blh);
+  rect(blx1, bly1, blw1, blh1);
+  rect(blx2, bly2, blw2, blh2);
+  rect(blx3, bly3, blw3, blh3);
+  rect(blx4, bly4, blw4, blh4);
+  rect(blx5, bly5, blw5, blh5);
+  rect(blx6, bly6, blw6, blh6);
+  rect(blx7, bly7, blw7, blh7);
+}
+
+void player()
+{
+  fill(255);
+  rect (plx, ply, plw, plh); // players control
+}
+
+void bounce()
+{
+
+ if (ciry + cirh/2 > ply - plh/2 && cirx + cirw/2 > plx - plw/2 && cirx - cirw/2 < plx + plw/2 && yspeed >= 0) // bounce off paddle
+ {
+   yspeed = - yspeed;
+ }
+ 
+//0
+
+ if (ciry - cirh/2 < bly + blh/2 && cirx - cirw/2 < blx + blw/2 && cirx + cirw/2 > blx - blw/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx = -100;
+    blx = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+ if (ciry + cirh/2 < bly - blh/2 && cirx - cirw/2 < blx + blw/2 && cirx + cirw/2 > blx - blw/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx = -100;
+    blx = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+//1
+
+ if (ciry - cirh/2 < bly1 + blh1/2 && cirx - cirw/2 < blx1 + blw1/2 && cirx + cirw/2 > blx1 - blw1/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx1 = -100;
+    blx1 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+ if (ciry + cirh/2 < bly1 - blh1/2 && cirx - cirw/2 < blx1 + blw1/2 && cirx + cirw/2 > blx1 - blw1/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx1 = -100;
+    blx1 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+//2
+
+ if (ciry - cirh/2 < bly2 + blh2/2 && cirx - cirw/2 < blx2 + blw2/2 && cirx + cirw/2 > blx2 - blw2/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx2 = -100;
+    blx2 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+ if (ciry + cirh/2 < bly2 - blh2/2 && cirx - cirw/2 < blx2 + blw2/2 && cirx + cirw/2 > blx2 - blw2/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx2 = -100;
+    blx2 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+//3
+
+ if (ciry - cirh/2 < bly3 + blh3/2 && cirx - cirw/2 < blx3 + blw3/2 && cirx + cirw/2 > blx3 - blw3/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx3 = -100;
+    blx3 = -100;    
+    score += 100;
+    block += 1;
+ }
+ 
+ if (ciry + cirh/2 < bly3 - blh3/2 && cirx - cirw/2 < blx3 + blw3/2 && cirx + cirw/2 > blx3 - blw3/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx3 = -100;
+    blx3 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+//4
+
+ if (ciry - cirh/2 < bly4 + blh4/2 && cirx - cirw/2 < blx4 + blw4/2 && cirx + cirw/2 > blx4 - blw4/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx4 = -100;
+    blx4 = -100;  
+    score += 100;
+    block += 1; 
+ }
+ 
+ if (ciry + cirh/2 < bly4 - blh4/2 && cirx - cirw/2 < blx4 + blw4/2 && cirx + cirw/2 > blx4 - blw4/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx4 = -100;
+    blx4 = -100; 
+    score += 100;
+    block += 1;
+ }
+ 
+//5
+
+ if (ciry - cirh/2 < bly5 + blh5/2 && cirx - cirw/2 < blx5 + blw5/2 && cirx + cirw/2 > blx5 - blw5/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx5 = -100;
+    blx5 = -100; 
+    score += 100;
+    block += 1;
+ }
+ 
+ if (ciry + cirh/2 < bly5 - blh5/2 && cirx - cirw/2 < blx5 + blw5/2 && cirx + cirw/2 > blx5 - blw5/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx5 = -100;
+    blx5 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+//6
+
+ if (ciry - cirh/2 < bly6 + blh6/2 && cirx - cirw/2 < blx6 + blw6/2 && cirx + cirw/2 > blx6 - blw6/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx6 = -100;
+    blx6 = -100;
+    score += 100;
+    block += 1;
+        
+ }
+ 
+ if (ciry + cirh/2 < bly6 - blh6/2 && cirx - cirw/2 < blx6 + blw6/2 && cirx + cirw/2 > blx6 - blw6/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx6 = -100;
+    blx6 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+//7
+
+ if (ciry - cirh/2 < bly7 + blh7/2 && cirx - cirw/2 < blx7 + blw7/2 && cirx + cirw/2 > blx7 - blw7/2 ) // bounce off the bottom of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx7 = -100;
+    blx7 = -100;
+    score += 100;
+    block += 1;
+ }
+ 
+ if (ciry + cirh/2 < bly7 - blh7/2 && cirx - cirw/2 < blx7 + blw7/2 && cirx + cirw/2 > blx7 - blw7/2 ) // bounce off the top of the blocks
+ {
+    yspeed = yspeed * -1;
+    blx7 = -100;
+    blx7 = -100;
+    score += 100;
+    block += 1;
+ }
+}
+
+void keyPressed() 
+{
+  if (key == 'a' && plx < 720) // move players control
+  {
+    playerspeed = 20;
+    plx = plx + playerspeed;
+  }
+
+  else if (key == 'd' && plx > 80) 
+  {
+    playerspeed = 20;
+    plx = plx - playerspeed;
+  }
+}
+
+void keyReleased() 
+{  
+  if (key == 'a') // when player releases the button stop the control
+  {
+    playerspeed = 0;
+  }
+
+  else if (key == 'd') 
+  {
+    playerspeed = 0;
+  }
+} 
+
+void gameover()
+{
+   background(118, 49, 232);
+   textSize(50);
+   int textx = 250, texty = 360;
+   text("Game over!", textx, texty); 
+   textSize(30);
+   text("Score = ", textx*1.24, texty*1.3);
+   text(score, textx*1.80, texty*1.3);
+   noFill();
+   stroke(255);
+   strokeWeight(10);    
+   int rx = 400, ry = 450; 
+   rect(rx, rx, ry, ry);
+}
+
+void wingame()
+{
+   background(118, 49, 232);
+   textSize(50);
+   int textx = 250, texty = 360;
+   text("You win!", textx+30, texty); 
+   textSize(30);
+   text("Score = ", textx*1.15, texty*1.3);
+   text(score, textx*1.74, texty*1.3);
+   noFill();
+   stroke(255);
+   strokeWeight(10);    
+   int rx = 400, ry = 450; 
+   rect(rx, rx, ry, ry);
+}
+
+void draw()
+{
+  background (118, 49, 232);
+  gamestart();
+  
+  if (paused >= 1)
+  {
+    background (118, 49, 232);
+    noStroke();
+    powerup();
+    powerdown();
+    score();
+    ball();
+    player();
+    bounce(); 
+    block();
+    
+    if (lives <= 0)
+  {
+    score();
+    gameover();
+    pyspeed = 0;
+    pyyspeed = 0;
+    xspeed = 0;
+    yspeed = 0;
+  }
+  
+    if (block >= 8)
+  {
+    score();
+    wingame();
+    pyspeed = 0;
+    pyyspeed = 0;
+    xspeed = 0;
+    yspeed = 0;
+
+  }
+  
+  }
+  
+}
